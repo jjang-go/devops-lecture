@@ -17,5 +17,6 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          sudo cd /root/devops-lecture
-          sudo git pull
+          sudo -i
+          cd /root/devops-lecture
+          git pull
