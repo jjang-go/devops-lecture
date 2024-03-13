@@ -132,6 +132,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+CICD/training/python_test/venv/*
 ENV/
 env.bak/
 venv.bak/
