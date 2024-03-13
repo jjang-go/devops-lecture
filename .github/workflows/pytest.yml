@@ -5,30 +5,38 @@ name: Python package
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # main 브랜치에 push될 때만 활성화
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # ubuntu-latest 환경에서 실행
     strategy:
-      fail-fast: false
+      fail-fast: false # 하나의 테스트가 실패하더라도 계속 진행
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10"] # 다양한 Python 버전으로 테스트
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - uses: actions/checkout@v3 # 저장소 체크아웃
+    - name: Set up Python ${{ matrix.python-version }} # 해당 Python 버전을 설정
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Install dependencies # 종속성 설치
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8
-        if [ -f CICD/training/python_test/requirements.txt ]; then pip install -r CICD/training/python_test/requirements.txt; fi
-    - name: Test with pytest
+        if [ -f CICD/training/python_test/requirements.txt ]; then pip install -r CICD/training/python_test/requirements.txt; fi # requirements.txt 파일이 존재하면 해당 파일에서 종속성 설치
+    - name: Test with pytest # pytest를 사용하여 테스트 실행
       run: |
         pytest
         coverage run -m pytest
         coverage report
+        coverage html
+    - name: Upload Artifact # coverage 결과를 GitHub에 저장
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: htmlcov
+        retention-days: 7 # 7일 후에 삭제
+
