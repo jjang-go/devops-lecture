@@ -11,4 +11,4 @@ def hello_world():
     """
     hello world api
     """
-    return "<p>Hello, World! 1234567</p>"
+    return "<p>Hello, World!</p>"
