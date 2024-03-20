@@ -11,46 +11,103 @@ provider "aws" {
   region = "ap-northeast-2"
 }
 
-locals {
-  myip = "myip"
+variable "myIP" {
+  type = string
 }
 
-resource "aws_instance" "flask" {
+variable "mySubnetID" {
+  type = string
+}
+
+variable "myKeyName" {
+  type = string
+}
+
+variable "myVPCID" {
+  type = string
+}
+
+resource "aws_instance" "echo" {
+  depends_on = [ aws_security_group.default_sg ]
+
   ami = "ami-01117fda37bb910d8"
   instance_type = "t2.micro"
-  subnet_id = "subnet-0f195e131126e6d10"
+  vpc_security_group_ids = [ aws_security_group.default_sg.id ]
+  subnet_id = var.mySubnetID
   
   associate_public_ip_address = true
-  key_name = "tykim"
+  key_name = var.myKeyName
 
-  security_groups = []
   tags = {
-    Name = "flask"
+    Name = "echo"
   }
 }
 
-# resource "aws_security_group" "default_sg" {
-#   name        = "default_sg"
+resource "aws_instance" "cicd" {
+  depends_on = [ aws_security_group.cicd_sg ]
+  ami = "ami-01117fda37bb910d8"
+  instance_type = "m5.large"
+  vpc_security_group_ids = [ aws_security_group.cicd_sg.id ]
+  subnet_id = var.mySubnetID
+  
+  associate_public_ip_address = true
+  key_name = var.myKeyName
 
-#   ingress {
-#     from_port        = 5000
-#     to_port          = 5000
-#     protocol         = "tcp"
-#     cidr_blocks      = [local.myip]
-#   }
+  tags = {
+    Name = "cicd"
+  }
+}
 
-#   ingress {
-#     from_port        = 22
-#     to_port          = 22
-#     protocol         = "tcp"
-#     cidr_blocks      = [local.myip]
-#   }
+resource "aws_security_group" "default_sg" {
+  name        = "default_sg"
+  vpc_id      = var.myVPCID
 
-#   egress {
-#     from_port        = 0
-#     to_port          = 0
-#     protocol         = "-1"
-#     cidr_blocks      = ["0.0.0.0/0"]
-#     ipv6_cidr_blocks = ["::/0"]
-#   }
-# }
+  ingress {
+    from_port        = 5000
+    to_port          = 5000
+    protocol         = "tcp"
+    cidr_blocks      = [var.myIP]
+  }
+
+  ingress {
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = [var.myIP]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
+
+resource "aws_security_group" "cicd_sg" {
+  name        = "cicd_sg"
+  vpc_id      = var.myVPCID
+
+  ingress {
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    cidr_blocks      = [var.myIP]
+  }
+
+  ingress {
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = [var.myIP]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
